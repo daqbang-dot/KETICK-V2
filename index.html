@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyBiz Pro - Sistem Pengurusan Bisnes</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <nav class="no-print">
+        <div class="nav-container">
+            <h2 class="logo"><i class="fas fa-rocket"></i> MyBiz <span>Pro</span></h2>
+            <ul>
+                <li><a href="#" onclick="showSection('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href="#" onclick="showSection('crm')"><i class="fas fa-users"></i> CRM</a></li>
+                <li><a href="#" onclick="showSection('inventory')"><i class="fas fa-boxes"></i> Inventory</a></li>
+                <li><a href="#" onclick="showSection('clients')"><i class="fas fa-address-book"></i> Clients</a></li>
+                <li><a href="#" onclick="showSection('billing')"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
+                <li><a href="#" onclick="showSection('history')"><i class="fas fa-history"></i> History</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        
+        <section id="dashboard" class="active">
+            <div class="section-header">
+                <h1>Dashboard Analitik</h1>
+                <div class="sync-buttons no-print">
+                    <button class="btn-secondary" onclick="exportData()"><i class="fas fa-download"></i> Backup</button>
+                    <button class="btn-secondary" onclick="document.getElementById('importFile').click()"><i class="fas fa-upload"></i> Restore</button>
+                    <input type="file" id="importFile" onchange="importData(event)" style="display:none">
+                </div>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card blue">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <div>
+                        <h3>Total Jualan</h3>
+                        <h2 id="dash-total-sales">RM 0.00</h2>
+                    </div>
+                </div>
+                <div class="stat-card green">
+                    <i class="fas fa-shopping-cart"></i>
+                    <div>
+                        <h3>Bilangan Invois</h3>
+                        <h2 id="dash-total-inv">0</h2>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-card no-print">
+                <h3><i class="fas fa-user-tie"></i> Profil Syarikat & Cop</h3>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Nama Syarikat</label>
+                        <input type="text" id="conf-name" placeholder="Contoh: MyBiz Sdn Bhd">
+                    </div>
+                    <div class="input-group">
+                        <label>No. Pendaftaran (SSM)</label>
+                        <input type="text" id="conf-reg" placeholder="202401XXXXXX">
+                    </div>
+                    <div class="input-group">
+                        <label>Alamat Penuh</label>
+                        <input type="text" id="conf-address" placeholder="Alamat premis">
+                    </div>
+                    <div class="input-group">
+                        <label>No. Telefon</label>
+                        <input type="text" id="conf-phone" placeholder="012-XXXXXXX">
+                    </div>
+                    <div class="input-group">
+                        <label>Logo Syarikat</label>
+                        <input type="file" id="logo-file" accept="image/*" onchange="handleFileUpload(event, 'logo')">
+                    </div>
+                    <div class="input-group">
+                        <label>Cop Rasmi (PNG Transparan)</label>
+                        <input type="file" id="stamp-file" accept="image/*" onchange="handleFileUpload(event, 'stamp')">
+                    </div>
+                </div>
+                <button class="btn-primary" onclick="saveCompanyProfile()" style="margin-top:20px">Simpan Profil</button>
+            </div>
+        </section>
+
+        <section id="crm">
+            <h1><i class="fas fa-robot"></i> WhatsApp Autopilot</h1>
+            <form id="crm-form" class="card-form">
+                <input type="text" id="lead-name" placeholder="Nama Prospek" required>
+                <select id="lead-status">
+                    <option value="New">Baru</option>
+                    <option value="Follow-up">Follow-up</option>
+                    <option value="Closed">Selesai</option>
+                </select>
+                <button type="submit" class="btn-primary">Tambah Lead</button>
+            </form>
+
+            <div class="wa-blast-card no-print">
+                <h3>Blast Mesej Pukal</h3>
+                <textarea id="wa-message" placeholder="Hi {nama}, terima kasih berminat dengan servis kami..."></textarea>
+                <div class="blast-controls">
+                    <div class="input-group">
+                        <label>Sela Masa (Saat)</label>
+                        <input type="number" id="wa-delay" value="5">
+                    </div>
+                    <button onclick="startWhatsAppAutopilot()" class="btn-whatsapp"><i class="fab fa-whatsapp"></i> Mula Blast</button>
+                </div>
+                <p id="wa-status"></p>
+            </div>
+
+            <div class="table-container">
+                <table id="crm-table">
+                    <thead><tr><th>Nama</th><th>Status</th><th>Tindakan</th></tr></thead>
+                    <tbody id="crm-list"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="inventory">
+            <h1><i class="fas fa-boxes"></i> Pangkalan Data Stok</h1>
+            <form id="inv-form" class="card-form">
+                <input type="hidden" id="edit-id" value="-1">
+                <input type="text" id="item-name" placeholder="Nama Barang" required style="flex:2">
+                <input type="number" id="item-qty" placeholder="Qty" required style="flex:0.5">
+                <input type="number" id="item-price" placeholder="Harga (RM)" step="0.01" required style="flex:1">
+                <button type="submit" id="inv-btn" class="btn-primary">Tambah Stok</button>
+            </form>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Barang</th><th>Baki Stok</th><th>Harga Seunit</th><th>Tindakan</th></tr></thead>
+                    <tbody id="inv-list"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="billing">
+            <h1 class="no-print">Sistem Invois & Sebut Harga</h1>
+            <div class="billing-controls no-print">
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Pilih Pelanggan</label>
+                        <select id="bill-client-select"></select>
+                    </div>
+                    <div class="input-group">
+                        <label>Pilih Produk</label>
+                        <div style="display:flex; gap:10px">
+                            <select id="bill-item-select" style="flex:1"></select>
+                            <button class="btn-add" onclick="addToBill()"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-3" style="margin-top:15px">
+                    <input type="text" id="bill-bank-name" placeholder="Nama Bank">
+                    <input type="text" id="bill-bank-acc" placeholder="No. Akaun">
+                    <input type="text" id="bill-bank-holder" placeholder="Nama Pemegang">
+                </div>
+                <textarea id="bill-remark" placeholder="Nota Tambahan / Terma & Syarat" style="margin-top:10px"></textarea>
+
+                <div class="doc-buttons">
+                    <button class="btn-quo" onclick="generateDocument('QUOTATION')">QUOTATION</button>
+                    <button class="btn-inv" onclick="generateDocument('INVOICE')">INVOICE</button>
+                    <button class="btn-rec" onclick="generateDocument('RECEIPT')">RECEIPT</button>
+                </div>
+            </div>
+
+            <div id="billing-print-area">
+                <div class="print-header">
+                    <div class="comp-branding">
+                        <img id="print-logo" src="" style="display:none">
+                        <div>
+                            <h1 id="bill-type">INVOICE</h1>
+                            <p class="ref-no">Ref: <span id="bill-ref-no">-</span></p>
+                        </div>
+                    </div>
+                    <div class="comp-details">
+                        <h4 id="print-comp-name">-</h4>
+                        <p id="print-comp-reg"></p>
+                        <p id="print-comp-addr"></p>
+                        <p id="print-comp-phone"></p>
+                    </div>
+                </div>
+
+                <div class="print-info-grid">
+                    <div class="client-box">
+                        <p><strong>KEPADA:</strong></p>
+                        <div id="bill-client-display">Sila pilih pelanggan...</div>
+                    </div>
+                    <div class="date-box">
+                        <p><strong>TARIKH:</strong> <span id="bill-date">-</span></p>
+                    </div>
+                </div>
+
+                <table class="bill-table">
+                    <thead><tr><th>Deskripsi Barang</th><th style="text-align:right">Amaun (RM)</th><th class="no-print"></th></tr></thead>
+                    <tbody id="bill-items-list"></tbody>
+                    <tfoot>
+                        <tr>
+                            <th style="text-align:right">JUMLAH KESELURUHAN</th>
+                            <th style="text-align:right" id="bill-total-cell">RM <span id="bill-total">0.00</span></th>
+                            <th class="no-print"></th>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="print-footer">
+                    <div class="bank-info">
+                        <strong>MAKLUMAT PEMBAYARAN:</strong><br>
+                        Bank: <span id="display-bank">-</span><br>
+                        Akaun: <span id="display-acc">-</span><br>
+                        Nama: <span id="display-holder">-</span><br>
+                        <p class="remark-text">Nota: <span id="display-remark">-</span></p>
+                    </div>
+                    <div class="sign-box">
+                        <img id="print-stamp" src="" style="display:none">
+                        <div class="sign-line">Tandatangan Pengurusan</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="history">
+            <h1>Rekod Dokumen</h1>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Tarikh</th><th>No. Ref</th><th>Pelanggan</th><th>Jumlah</th><th>Tindakan</th></tr></thead>
+                    <tbody id="history-list"></tbody>
+                </table>
+            </div>
+        </section>
+    </div> 
+
+    <script src="app.js"></script>
+</body>
+</html>
