@@ -14,7 +14,7 @@
             <h2 class="logo"><i class="fas fa-rocket"></i> MyBiz <span>Pro</span></h2>
             <ul>
                 <li><a href="#" onclick="showSection('dashboard')"><i class="fas fa-chart-line"></i> Dashboard</a></li>
-                <li><a href="#" onclick="showSection('crm')"><i class="fas fa-users"></i> CRM</a></li>
+                <li><a href="#" onclick="showSection('crm')"><i class="fas fa-users"></i> CRM/Leads</a></li>
                 <li><a href="#" onclick="showSection('inventory')"><i class="fas fa-boxes"></i> Inventory</a></li>
                 <li><a href="#" onclick="showSection('clients')"><i class="fas fa-address-book"></i> Clients</a></li>
                 <li><a href="#" onclick="showSection('billing')"><i class="fas fa-file-invoice-dollar"></i> Billing</a></li>
@@ -86,18 +86,9 @@
 
         <section id="crm">
             <h1><i class="fas fa-robot"></i> WhatsApp Autopilot</h1>
-            <form id="crm-form" class="card-form">
-                <input type="text" id="lead-name" placeholder="Nama Prospek" required>
-                <select id="lead-status">
-                    <option value="New">Baru</option>
-                    <option value="Follow-up">Follow-up</option>
-                    <option value="Closed">Selesai</option>
-                </select>
-                <button type="submit" class="btn-primary">Tambah Lead</button>
-            </form>
-
             <div class="wa-blast-card no-print">
-                <h3>Blast Mesej Pukal</h3>
+                <h3>Blast Mesej Pukal ke Pelanggan</h3>
+                <p style="font-size: 0.8rem; color: #666;">Gunakan {nama} untuk personalisasi.</p>
                 <textarea id="wa-message" placeholder="Hi {nama}, terima kasih berminat dengan servis kami..."></textarea>
                 <div class="blast-controls">
                     <div class="input-group">
@@ -110,6 +101,16 @@
             </div>
 
             <div class="table-container">
+                <h3>Status CRM / Leads</h3>
+                <form id="crm-form" class="card-form" style="display: flex; gap: 10px; margin-bottom: 15px;">
+                    <input type="text" id="lead-name" placeholder="Nama Prospek" required>
+                    <select id="lead-status">
+                        <option value="New">Baru</option>
+                        <option value="Follow-up">Follow-up</option>
+                        <option value="Closed">Selesai</option>
+                    </select>
+                    <button type="submit" class="btn-primary">Tambah</button>
+                </form>
                 <table id="crm-table">
                     <thead><tr><th>Nama</th><th>Status</th><th>Tindakan</th></tr></thead>
                     <tbody id="crm-list"></tbody>
@@ -124,12 +125,28 @@
                 <input type="text" id="item-name" placeholder="Nama Barang" required style="flex:2">
                 <input type="number" id="item-qty" placeholder="Qty" required style="flex:0.5">
                 <input type="number" id="item-price" placeholder="Harga (RM)" step="0.01" required style="flex:1">
-                <button type="submit" id="inv-btn" class="btn-primary">Tambah Stok</button>
+                <button type="submit" id="inv-btn" class="btn-primary">Simpan Stok</button>
             </form>
             <div class="table-container">
                 <table>
                     <thead><tr><th>Barang</th><th>Baki Stok</th><th>Harga Seunit</th><th>Tindakan</th></tr></thead>
                     <tbody id="inv-list"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="clients">
+            <h1><i class="fas fa-address-book"></i> Pengurusan Pelanggan</h1>
+            <form id="client-form" class="card-form" style="display: flex; gap: 10px; margin-bottom: 20px;">
+                <input type="text" id="client-name" placeholder="Nama Pelanggan" required>
+                <input type="text" id="client-phone" placeholder="No. Phone (cth: 0123456789)" required>
+                <input type="email" id="client-email" placeholder="Email">
+                <button type="submit" class="btn-primary">Tambah Pelanggan</button>
+            </form>
+            <div class="table-container">
+                <table>
+                    <thead><tr><th>Nama</th><th>Email</th><th>Telefon</th><th>Tindakan</th></tr></thead>
+                    <tbody id="client-list"></tbody>
                 </table>
             </div>
         </section>
@@ -146,7 +163,7 @@
                         <label>Pilih Produk</label>
                         <div style="display:flex; gap:10px">
                             <select id="bill-item-select" style="flex:1"></select>
-                            <button class="btn-add" onclick="addToBill()"><i class="fas fa-plus"></i></button>
+                            <button class="btn-add" onclick="addToBill()" style="background: var(--accent); color:white;"><i class="fas fa-plus"></i></button>
                         </div>
                     </div>
                 </div>
@@ -159,16 +176,16 @@
                 <textarea id="bill-remark" placeholder="Nota Tambahan / Terma & Syarat" style="margin-top:10px"></textarea>
 
                 <div class="doc-buttons">
-                    <button class="btn-quo" onclick="generateDocument('QUOTATION')">QUOTATION</button>
-                    <button class="btn-inv" onclick="generateDocument('INVOICE')">INVOICE</button>
-                    <button class="btn-rec" onclick="generateDocument('RECEIPT')">RECEIPT</button>
+                    <button class="btn-quo" onclick="generateDocument('QUOTATION')" style="background:#f39c12; color:white;">QUOTATION</button>
+                    <button class="btn-inv" onclick="generateDocument('INVOICE')" style="background:#2980b9; color:white;">INVOICE</button>
+                    <button class="btn-rec" onclick="generateDocument('RECEIPT')" style="background:#27ae60; color:white;">RECEIPT</button>
                 </div>
             </div>
 
             <div id="billing-print-area">
                 <div class="print-header">
                     <div class="comp-branding">
-                        <img id="print-logo" src="" style="display:none">
+                        <img id="print-logo" src="" style="display:none; max-width: 150px;">
                         <div>
                             <h1 id="bill-type">INVOICE</h1>
                             <p class="ref-no">Ref: <span id="bill-ref-no">-</span></p>
@@ -187,7 +204,7 @@
                         <p><strong>KEPADA:</strong></p>
                         <div id="bill-client-display">Sila pilih pelanggan...</div>
                     </div>
-                    <div class="date-box">
+                    <div class="date-box" style="text-align: right;">
                         <p><strong>TARIKH:</strong> <span id="bill-date">-</span></p>
                     </div>
                 </div>
@@ -198,7 +215,7 @@
                     <tfoot>
                         <tr>
                             <th style="text-align:right">JUMLAH KESELURUHAN</th>
-                            <th style="text-align:right" id="bill-total-cell">RM <span id="bill-total">0.00</span></th>
+                            <th style="text-align:right">RM <span id="bill-total">0.00</span></th>
                             <th class="no-print"></th>
                         </tr>
                     </tfoot>
