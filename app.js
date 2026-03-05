@@ -9,7 +9,8 @@ let currentBillItems = [];
 // NAVIGATION
 function showSection(id) {
     document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
-    document.getElementById(id).classList.add('active');
+    const target = document.getElementById(id);
+    if(target) target.classList.add('active');
     renderAll();
 }
 
@@ -48,13 +49,15 @@ function importData(event) {
     const file = event.target.files[0];
     const reader = new FileReader();
     reader.onload = (e) => {
-        const data = JSON.parse(e.target.result);
-        localStorage.setItem('companyProfile', JSON.stringify(data.companyProfile));
-        localStorage.setItem('crm', JSON.stringify(data.crmData));
-        localStorage.setItem('inventory', JSON.stringify(data.inventoryData));
-        localStorage.setItem('clients', JSON.stringify(data.clientData));
-        localStorage.setItem('history', JSON.stringify(data.historyData));
-        location.reload();
+        try {
+            const data = JSON.parse(e.target.result);
+            localStorage.setItem('companyProfile', JSON.stringify(data.companyProfile || {}));
+            localStorage.setItem('crm', JSON.stringify(data.crmData || []));
+            localStorage.setItem('inventory', JSON.stringify(data.inventoryData || []));
+            localStorage.setItem('clients', JSON.stringify(data.clientData || []));
+            localStorage.setItem('history', JSON.stringify(data.historyData || []));
+            location.reload();
+        } catch (err) { alert("Fail tidak sah!"); }
     };
     reader.readAsText(file);
 }
@@ -64,6 +67,7 @@ async function startWhatsAppAutopilot() {
     const rawMsg = document.getElementById('wa-message').value;
     const delay = parseInt(document.getElementById('wa-delay').value) * 1000;
     if (!rawMsg) return alert("Sila isi mesej!");
+    if (clientData.length === 0) return alert("Tiada pelanggan untuk di-blast!");
 
     for (let i = 0; i < clientData.length; i++) {
         const c = clientData[i];
@@ -110,8 +114,21 @@ function editProduct(id) {
     document.getElementById('item-price').value = p.price;
     document.getElementById('edit-id').value = id;
     document.getElementById('inv-btn').innerText = "Update Stok";
-    window.scrollTo(0,0);
 }
+
+// CLIENTS
+document.getElementById('client-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newClient = {
+        id: Date.now(),
+        name: document.getElementById('client-name').value,
+        phone: document.getElementById('client-phone').value,
+        email: document.getElementById('client-email').value
+    };
+    clientData.push(newClient);
+    e.target.reset();
+    saveAndRender();
+});
 
 // BILLING
 function addToBill() {
@@ -132,7 +149,7 @@ function renderBillingTable() {
     let total = 0;
     list.innerHTML = currentBillItems.map((i, idx) => {
         total += i.price;
-        return `<tr><td>${i.item}</td><td style="text-align:right">${i.price.toFixed(2)}</td><td class="no-print"><button onclick="removeFromBill(${idx})">X</button></td></tr>`;
+        return `<tr><td>${i.item}</td><td style="text-align:right">${i.price.toFixed(2)}</td><td class="no-print"><button onclick="removeFromBill(${idx})" style="color:red">X</button></td></tr>`;
     }).join('');
     document.getElementById('bill-total').innerText = total.toFixed(2);
 }
@@ -141,23 +158,29 @@ function generateDocument(type) {
     const cIdx = document.getElementById('bill-client-select').value;
     if (cIdx === "" || currentBillItems.length === 0) return alert("Pilih client & barang!");
 
-    // Tolak Stok
+    // Tolak Stok (Jika bukan Quotation)
     if (type !== 'QUOTATION') {
-        for (let b of currentBillItems) {
+        currentBillItems.forEach(b => {
             let inv = inventoryData.find(i => i.item === b.item);
             if (inv && inv.qty > 0) inv.qty -= 1;
-        }
+        });
     }
 
-    // Paparan Dokumen
+    // Paparan Header Dokumen
     document.getElementById('bill-type').innerText = type;
     document.getElementById('print-comp-name').innerText = companyProfile.name || "NAMA SYARIKAT";
     document.getElementById('print-comp-reg').innerText = companyProfile.reg;
     document.getElementById('print-comp-addr').innerText = companyProfile.address;
     document.getElementById('print-comp-phone').innerText = companyProfile.phone;
     
-    if(companyProfile.logo) { document.getElementById('print-logo').src = companyProfile.logo; document.getElementById('print-logo').style.display='block'; }
-    if(companyProfile.stamp) { document.getElementById('print-stamp').src = companyProfile.stamp; document.getElementById('print-stamp').style.display='block'; }
+    if(companyProfile.logo) { 
+        document.getElementById('print-logo').src = companyProfile.logo; 
+        document.getElementById('print-logo').style.display='block'; 
+    }
+    if(companyProfile.stamp) { 
+        document.getElementById('print-stamp').src = companyProfile.stamp; 
+        document.getElementById('print-stamp').style.display='block'; 
+    }
 
     const docNo = `${type.slice(0,3)}-${Date.now().toString().slice(-4)}`;
     document.getElementById('bill-ref-no').innerText = docNo;
@@ -166,14 +189,20 @@ function generateDocument(type) {
     const client = clientData[cIdx];
     document.getElementById('bill-client-display').innerHTML = `<strong>${client.name}</strong><br>${client.phone}`;
     
-    // Set Bank Info
     document.getElementById('display-bank').innerText = document.getElementById('bill-bank-name').value || "-";
     document.getElementById('display-acc').innerText = document.getElementById('bill-bank-acc').value || "-";
     document.getElementById('display-holder').innerText = document.getElementById('bill-bank-holder').value || "-";
     document.getElementById('display-remark').innerText = document.getElementById('bill-remark').value || "-";
 
     // Simpan History
-    historyData.push({ id:Date.now(), date:new Date().toLocaleDateString('ms-MY'), docNo, clientName: client.name, amount: document.getElementById('bill-total').innerText, type });
+    historyData.push({ 
+        id: Date.now(), 
+        date: new Date().toLocaleDateString('ms-MY'), 
+        docNo, 
+        clientName: client.name, 
+        amount: document.getElementById('bill-total').innerText, 
+        type 
+    });
     
     saveAndRender();
     setTimeout(() => { window.print(); }, 700);
@@ -182,20 +211,27 @@ function generateDocument(type) {
 // RENDER & DELETE
 function renderAll() {
     // Inventory
-    document.getElementById('inv-list').innerHTML = inventoryData.map(d => `<tr><td>${d.item}</td><td>${d.qty}</td><td>RM ${d.price.toFixed(2)}</td><td><button class="btn-edit" onclick="editProduct(${d.id})">Edit</button> <button class="btn-del" onclick="deleteItem('inventory', ${d.id})">Padam</button></td></tr>`).join('');
+    const invList = document.getElementById('inv-list');
+    if(invList) invList.innerHTML = inventoryData.map(d => `<tr><td>${d.item}</td><td>${d.qty}</td><td>RM ${d.price.toFixed(2)}</td><td><button class="btn-edit" onclick="editProduct(${d.id})">Edit</button> <button class="btn-del" onclick="deleteItem('inventory', ${d.id})">Padam</button></td></tr>`).join('');
     
     // Clients
-    document.getElementById('client-list').innerHTML = clientData.map(d => `<tr><td>${d.name}</td><td>${d.email}</td><td>${d.phone}</td><td><button class="btn-del" onclick="deleteItem('clients', ${d.id})">Padam</button></td></tr>`).join('');
+    const clientList = document.getElementById('client-list');
+    if(clientList) clientList.innerHTML = clientData.map(d => `<tr><td>${d.name}</td><td>${d.email || '-'}</td><td>${d.phone}</td><td><button class="btn-del" onclick="deleteItem('clients', ${d.id})">Padam</button></td></tr>`).join('');
     
     // Dropdowns
-    document.getElementById('bill-client-select').innerHTML = '<option value="">-- Pelanggan --</option>' + clientData.map((c,i) => `<option value="${i}">${c.name}</option>`).join('');
-    document.getElementById('bill-item-select').innerHTML = '<option value="">-- Barang --</option>' + inventoryData.map((n,i) => `<option value="${i}">${n.item} (Stok: ${n.qty})</option>`).join('');
+    const clientSelect = document.getElementById('bill-client-select');
+    if(clientSelect) clientSelect.innerHTML = '<option value="">-- Pelanggan --</option>' + clientData.map((c,i) => `<option value="${i}">${c.name}</option>`).join('');
+    
+    const itemSelect = document.getElementById('bill-item-select');
+    if(itemSelect) itemSelect.innerHTML = '<option value="">-- Barang --</option>' + inventoryData.map((n,i) => `<option value="${i}">${n.item} (Stok: ${n.qty})</option>`).join('');
 
     // CRM
-    document.getElementById('crm-list').innerHTML = crmData.map(d => `<tr><td>${d.name}</td><td><span class="badge ${d.status}">${d.status}</span></td><td><button class="btn-del" onclick="deleteItem('crm', ${d.id})">Padam</button></td></tr>`).join('');
+    const crmList = document.getElementById('crm-list');
+    if(crmList) crmList.innerHTML = crmData.map(d => `<tr><td>${d.name}</td><td><span class="badge ${d.status}">${d.status}</span></td><td><button class="btn-del" onclick="deleteItem('crm', ${d.id})">Padam</button></td></tr>`).join('');
 
     // History
-    document.getElementById('history-list').innerHTML = historyData.slice().reverse().map(h => `<tr><td>${h.date}</td><td>${h.docNo}</td><td>${h.clientName}</td><td>RM ${h.amount}</td><td><button class="btn-del" onclick="deleteHistoryItem(${h.id})">Padam</button></td></tr>`).join('');
+    const historyList = document.getElementById('history-list');
+    if(historyList) historyList.innerHTML = historyData.slice().reverse().map(h => `<tr><td>${h.date}</td><td>${h.docNo}</td><td>${h.clientName}</td><td>RM ${h.amount}</td><td><button class="btn-del" onclick="deleteHistoryItem(${h.id})">Padam</button></td></tr>`).join('');
 
     // Dashboard Stats
     let totalSales = 0;
@@ -204,13 +240,14 @@ function renderAll() {
     document.getElementById('dash-total-inv').innerText = historyData.length;
 
     // Load Profile Inputs
-    document.getElementById('conf-name').value = companyProfile.name;
-    document.getElementById('conf-reg').value = companyProfile.reg;
-    document.getElementById('conf-address').value = companyProfile.address;
-    document.getElementById('conf-phone').value = companyProfile.phone;
+    document.getElementById('conf-name').value = companyProfile.name || '';
+    document.getElementById('conf-reg').value = companyProfile.reg || '';
+    document.getElementById('conf-address').value = companyProfile.address || '';
+    document.getElementById('conf-phone').value = companyProfile.phone || '';
 }
 
 function deleteItem(type, id) {
+    if(!confirm("Padam data ini?")) return;
     if (type === 'crm') crmData = crmData.filter(i => i.id !== id);
     else if (type === 'inventory') inventoryData = inventoryData.filter(i => i.id !== id);
     else if (type === 'clients') clientData = clientData.filter(i => i.id !== id);
@@ -225,6 +262,7 @@ function deleteHistoryItem(id) {
 }
 
 function saveAndRender() {
+    localStorage.setItem('companyProfile', JSON.stringify(companyProfile));
     localStorage.setItem('inventory', JSON.stringify(inventoryData));
     localStorage.setItem('history', JSON.stringify(historyData));
     localStorage.setItem('clients', JSON.stringify(clientData));
@@ -240,4 +278,5 @@ document.getElementById('crm-form').addEventListener('submit', (e) => {
     saveAndRender();
 });
 
+// Initial Run
 renderAll();
