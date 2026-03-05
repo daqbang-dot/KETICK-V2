@@ -8,7 +8,7 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background: #f4f7f6;
     margin: 0;
     color: var(--dark);
@@ -36,7 +36,7 @@ nav {
 .logo { font-size: 1.5rem; margin: 0; }
 .logo span { color: var(--secondary); }
 
-nav ul { list-style: none; display: flex; gap: 20px; margin: 0; }
+nav ul { list-style: none; display: flex; gap: 20px; margin: 0; padding: 0; }
 nav a { 
     color: #bdc3c7; 
     text-decoration: none; 
@@ -89,37 +89,43 @@ input, select, textarea {
 button { border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; transition: 0.3s; font-weight: 600; }
 .btn-primary { background: var(--secondary); color: white; }
 .btn-secondary { background: var(--primary); color: white; }
-.btn-whatsapp { background: #25d366; color: white; }
+.btn-whatsapp { background: #25d366; color: white; margin-top: 10px; }
 .btn-del { background: #fee2e2; color: var(--danger); font-size: 0.8rem; }
 .btn-edit { background: #e0f2fe; color: var(--accent); font-size: 0.8rem; }
 
 /* TABLES */
 .table-container { overflow-x: auto; margin-top: 20px; }
-table { width: 100%; border-collapse: collapse; }
-th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 0.85rem; color: #7f8c8d; }
+table { width: 100%; border-collapse: collapse; background: white; }
+th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 0.85rem; color: #7f8c8d; border-bottom: 2px solid #eee; }
 td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
+
+/* BADGES */
+.badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: bold; }
+.badge.New { background: #e0f2fe; color: #0369a1; }
+.badge.Follow-up { background: #fef3c7; color: #92400e; }
+.badge.Closed { background: #dcfce7; color: #166534; }
 
 /* BILLING PRINT AREA */
 #billing-print-area {
     background: white;
-    padding: 50px;
+    padding: 40px;
     margin-top: 30px;
-    border: 1px solid #eee;
+    border: 1px solid #ddd;
 }
 
 .print-header { display: flex; justify-content: space-between; border-bottom: 3px solid var(--primary); padding-bottom: 20px; }
 #print-logo { height: 60px; margin-bottom: 10px; }
 .comp-details { text-align: right; }
-.comp-details h4 { margin: 0; color: var(--primary); }
-.comp-details p { margin: 2px 0; font-size: 0.8rem; }
+.comp-details h4 { margin: 0; color: var(--primary); font-size: 1.2rem; }
+.comp-details p { margin: 2px 0; font-size: 0.85rem; }
 
 .print-info-grid { display: grid; grid-template-columns: 1fr 1fr; margin: 30px 0; }
-.bill-table { width: 100%; margin: 20px 0; }
-.bill-table th { background: var(--primary); color: white; }
+.bill-table { width: 100%; margin: 20px 0; border-bottom: 2px solid #333; }
+.bill-table th { background: var(--primary) !important; color: white !important; }
 
-.print-footer { display: flex; justify-content: space-between; margin-top: 50px; }
-.sign-box { text-align: center; position: relative; width: 200px; }
-#print-stamp { width: 120px; position: absolute; top: -30px; left: 40px; opacity: 0.7; }
+.print-footer { display: flex; justify-content: space-between; margin-top: 50px; align-items: flex-end; }
+.sign-box { text-align: center; position: relative; width: 220px; }
+#print-stamp { width: 100px; position: absolute; top: -40px; left: 60px; opacity: 0.6; pointer-events: none; }
 .sign-line { border-top: 1px solid black; margin-top: 60px; padding-top: 5px; font-weight: bold; }
 
 /* ANIMATION */
@@ -129,10 +135,10 @@ td { padding: 12px; border-bottom: 1px solid #eee; font-size: 0.9rem; }
 }
 
 @media print {
-    .no-print, nav, button, .billing-controls { display: none !important; }
+    .no-print, nav, button, .billing-controls, .card-form, h1.no-print { display: none !important; }
     body { background: white; }
     .container { width: 100%; max-width: 100%; padding: 0; margin: 0; }
     section { box-shadow: none; padding: 0; display: none !important; }
     section#billing { display: block !important; }
-    #billing-print-area { border: none; padding: 0; }
+    #billing-print-area { border: none; padding: 0; margin-top: 0; }
 }
